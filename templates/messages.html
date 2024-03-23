@@ -1,0 +1,953 @@
+
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .chat-container{
+        width: 200px;
+    }
+    
+    .img-div{
+        border-radius: 50%;
+    }    
+    .img-fluid {
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        margin-right: 10px;
+
+    }
+    .user-name{
+        margin: 0;
+        font-weight: bold;
+        -ms-flex-item-align: end;
+        
+    }
+    .chat-name{
+        width: 200px;
+        margin-left: 10px;
+        margin-top: 8px;
+        background-color: #6002a8ca;
+        display: flex;
+        padding-top: 15px;
+        padding-bottom: 10px;
+        padding-left: 15px;
+        align-items: center;
+        border-radius: 10px;
+        border-color: #086db1ca;
+        border-style:groove; 
+    }
+    .chat-name:hover{
+        background-color: #086db1ca;
+        cursor: pointer;
+    }
+    .page-layout{
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .messanger-container{
+        float: right;
+        display: flex;
+        
+        flex-direction: row-reverse;
+        position: relative;
+        margin-right: auto;
+        margin-left: auto;
+        background-color: #c5520ab2;
+        border-radius: 14px;
+        width: 800px;
+        margin-top: 10px;
+        height: 600px;
+    }
+    .mes-header{
+        width: 400px;
+        height: 100px;
+        top: 50%;
+        left: 50%;
+        bottom: 100%;
+        top: 0%;
+        position:absolute;
+        align-items: center;
+        margin-top: 10px;
+        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content:center;
+        border-radius: 10px;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        align-items: baseline;
+    }
+    #button{
+        margin-top: auto;
+        
+        
+    }
+    .btn {
+        width: 200px;
+    }
+    #text{
+        
+        height: 25px;
+        width: 600px;
+        margin-top: auto;
+    }
+    .id{
+        display: none;
+    }
+    .send-form{
+        height: 25px;
+        width: 900px;
+        margin-top: auto;
+        display: flex;
+    }
+    .send-input{
+        height: 39px;
+        width:200px;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="page-layout">
+    <div class="chat-container">
+            {%for chat in chats%}   
+            <div class="chat">
+                <div class="chat-name">
+                    <div class="img-div">
+                    <img src="{{chat.photo_path}}" class="img-fluid">
+                </div>
+                    <h3 class="user-name">{{chat.name}}</h3>
+                    <h1 class="id">{{chat.id}}</h1>
+                </div>
+        
+        
+            
+        </div>
+        {%endfor%}
+    </div>
+    <div class="messanger-container">
+        <div class="mes-header">
+            <h3>Чат</h3>
+        
+
+        </div>
+        
+            <form class="send-form" method="" id="send-form">
+            <textarea class="form-control" id="text" name='message_body' rows="3"></textarea>
+            
+            
+        
+            <input type="submit" name="send" class='btn-primary send-input' value="Отправить">
+        </form>
+        <div class="message-container" id = 'block'></div>
+    
+        
+    </div>
+
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js" integrity="sha384-Gr6Lu2Ajx28mzwyVR8CFkULdCU7kMlZ9UthllibdOSo6qAiN+yXNHqtgdTvFXMT4" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+        
+            
+
+                    
+                    const socket = io.connect('http://127.0.0.1:5000');
+
+                    $('body').delegate('.accept', 'click', function(e){
+                        var photoPath = $(this).closest('.recipient-message').find('#PhotoPath').val()
+                        e.preventDefault();
+                        alert('Принято, перезагрузите страницу, чтобы увидеть их в чатах')
+                        $.ajax({
+        url: '/api/like',
+        type: 'POST',
+        data: {
+        message: '1',
+        photo: photoPath,
+        
+        },
+        success: function(response) {
+        if (response.message == "You cannot like yourself."){
+            alert(response.message)
+        } 
+        else if (response.message == 'You have already liked this user.'){
+            alert(response.message  )
+        }
+        else{ 
+ // Handle success
+                console.log('Like sent successfully:', response);
+                
+        }
+        $('#sendLike').unbind('click');
+        return false;
+        },
+        error: function(xhr, status, error) {
+          // Handle error
+        console.error('Error sending like:', error);
+        }
+});
+
+                    })
+
+                    $('body').delegate('.disaccept', 'click', function(e){
+                        alert('Отклонено, но вы можете передумать в любую секунду. Кнопка принять всегда активна')
+                    })
+
+
+                    $('body').delegate('.blockButton', 'click', function(e){
+                        e.preventDefault();
+                        var user_id  = document.querySelector('#user_id').value;
+                        socket.send({
+                            'command': 'block',
+                            'message_body': 'Кто то из вас заблокировал другого. Перезагрузите страницу. Для разблокироваки лайкните его снова(нужно чтобы у обоих людей были взаимные лайки)',
+                            'recipient_id': user_id,
+                            'sender_id': {{current_user.id}}
+
+                        })
+
+                        
+                    })
+
+                    $('body').delegate('#send-form', 'submit', function(e){
+                        e.preventDefault();
+                    
+                        var user_id = $('#user_id').val()
+                        socket.send({
+                            'message_body': $('#text').val(),
+                            'recipient_id': user_id,
+                            'sender_id': {{current_user.id}}
+                        }, )
+                        $('#text').val('');
+                        
+                    });
+                    socket.on('message',data => {
+                        if (data.command == 'block'){
+                            var id  = document.querySelector('#user_id').value;
+                            let cur_id =  Number(id);
+                            let recipient_id = Number(data.recipient_id);
+                            let sender_id = Number(data.sender_id);
+                            if ((recipient_id == {{current_user.id}})  && (sender_id == cur_id)) {
+                                alert('Вас заблокировал этот пользователь. Страница будет перегружена');
+                                location.reload();
+                                
+                        }
+                        else if ((recipient_id != {{current_user.id}}) && (sender_id == {{current_user.id}})){
+                            alert('Вы успешно заблокировали пользователя. Страница будет перегружена');
+                            location.reload();
+                        }
+
+                    }
+                        if (data.message_body.length >0){
+                            var id  = document.querySelector('#user_id').value;
+                            let cur_id =  Number(id);
+                            let recipient_id = Number(data.recipient_id);
+                            let sender_id = Number(data.sender_id);
+                            if ((recipient_id == {{current_user.id}})  && (sender_id == cur_id)) {
+                                let div = document.createElement('div');
+                                div.classList.add('message');
+                                div.classList.add('recipient-message');
+                                div.innerHTML = data.message_body;
+                                $('#block').append(div);
+
+                            }
+                            else if ((recipient_id != {{current_user.id}}) && (sender_id == {{current_user.id}})){
+                                let div = document.createElement('div');
+                                div.classList.add('message');
+                                div.classList.add('user-message');
+                                div.innerHTML = data.message_body;
+                                $('#block').append(div);
+
+                            }
+                            block.scrollTop = block.scrollHeight;
+
+                        }
+                    })    
+        
+        </script>
+
+<script>
+
+
+
+
+    document.addEventListener('DOMContentLoaded', function(){
+ // подключаемся к сокету при загрузке страницы
+        let chatName = document.querySelectorAll('.chat-name');
+        let messengerContainer = document.querySelector('.messanger-container');
+        let messageContainer = document.querySelector('.message-container');
+
+        chatName.forEach(function(chat){
+            chat.addEventListener('click', function(){
+                let user_id = this.querySelector('.id').textContent;
+                fetch('/messages/' + user_id)
+                .then(response => response.json())
+                .then(data => {
+                    messageContainer.innerHTML = '';
+                    let b =  data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                    b.forEach(function(message){
+                        let div = document.createElement('div');
+                        div.classList.add('message');
+                        if(message.sender_id == {{current_user.id}}){
+                            div.classList.add('user-message');
+                        }
+                        else{
+                            div.classList.add('recipient-message');
+                        }
+                        div.innerHTML = message.body;
+                        messageContainer.appendChild(div);
+                    });
+                    
+                    messengerContainer.querySelector('.mes-header').innerHTML = ""; //очищаем контейнер
+                    //очищаем контейнер
+
+                    let header = messengerContainer.querySelector('.mes-header'); //вытаскиваем контейнер
+                    let name = document.createElement('h5'); //создаем элемент span
+                    name.textContent = this.querySelector('.user-name').textContent; //записываем в него имя
+                    header.appendChild(name); //добавляем span в контейнер
+                    let img_div = document.createElement('div')
+                    img_div.classList.add('img-div');
+                    let img = document.createElement('img'); //создаем изображение
+                    img.src = this.querySelector('.img-fluid').getAttribute('src'); //записываем в него адрес фото
+                    img.classList.add('img-fluid'); //добавляем класс
+                    img.style.display = 'inline-block'; //устанавливаем отображение
+                    img.style.verticalAlign = 'top'; //устанавливаем выравнивание
+                    img.style.marginRight = '10px'; //устанавливаем отступ
+
+                    img_div.appendChild(img);
+
+
+                    let blockButton = document.createElement('button');
+                    blockButton.textContent = 'Заблокировать диалог';
+                    blockButton.classList.add('blockButton')
+                    
+
+
+
+                    let clearButton = document.createElement('button');
+                    clearButton.textContent = 'Очистить диалог';
+                    clearButton.classList.add('clearButton')
+                    clearButton.addEventListener('click', function(){
+                        $.ajax({
+                        url: '/clear_dialog',
+                        method: 'post',
+                        datatype: 'html',
+                        data: {
+                            'recipient_id': user_id,
+                            'user_id': {{current_user.id}}
+                        },
+                        success: function(){
+                            messageContainer.innerHTML = '';
+                        }
+                    })
+                        
+                    });
+
+
+                    header.appendChild(img_div); //добавляем изображение в конец контейнера
+                    header.appendChild(name); //добавляем имя в конец контейнера
+                    header.appendChild(blockButton); //добавляем кнопку блокировки в конец контейнера
+                    header.appendChild(clearButton); //добавляем кнопку очистки в конец контейнера
+
+                    let form = document.createElement('form');
+                //form.method = 'POST'
+                form.className = 'send-form';
+                form.id = 'send-form'
+                
+                
+                let textarea = document.createElement('textarea');
+                textarea.className = 'form-control';
+                textarea.id = 'text';
+                textarea.name = 'message_body';
+                textarea.rows = '3';
+                
+                let input = document.createElement('input');
+                input.type = 'submit'; //type 'submit' чтобы при нажатии на кнопку отправлялись данные в форме
+                //input.id = 'send-input';
+                input.className = 'btn-primary send-input';
+                input.textContent = 'Написать';
+                input.name='send'
+                input.value='Отправить'
+                let userIdInput = document.createElement('input');
+                userIdInput.type = 'hidden';
+                userIdInput.name = 'user_id';
+                userIdInput.id = 'user_id';
+                userIdInput.value = user_id;
+                
+                form.appendChild(textarea);
+                form.appendChild(input);
+                form.appendChild(userIdInput);
+                
+                // удаляем старую форму
+                let oldForm = messengerContainer.querySelector('.send-form');
+                if (oldForm) {
+                    oldForm.remove();
+                }
+                // добавляем новую
+                messengerContainer.appendChild(form);
+                var block = document.getElementById("block");
+                block.scrollTop = block.scrollHeight;
+                });
+
+            });
+        })
+})
+
+
+  
+
+    </script>
+
+<style>
+    .clearButton{
+        margin-left: 10px;
+        align-self:flex-end;
+    }
+    .blockButton{
+        margin-left: 10px;
+        align-self: flex-end;
+        margin-bottom: 10px;
+    }
+    .message-container{
+        height: 390px;
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        position: absolute;
+        flex-direction: column;
+        margin-top: 170px;
+        margin-bottom: 10px;
+        overflow-y:auto;
+    }
+    .user-message{
+        background-color: #9acfea;
+        text-align: start;
+        border-radius: 15px;
+        margin-bottom:1px;
+        float: right;
+        margin-bottom: 1px;
+        margin-left: auto;
+       
+    }
+    .recipient-message{
+        background-color: #04a73d;
+        text-align: start;
+        border-radius: 15px;
+        margin-bottom:1px;
+    }
+    .message{
+        padding: 10px;
+        margin-top: 15px;
+        width: 350px;
+    }
+    #PhotoPathc {
+        width: 330px;
+        border-radius: 10%;
+        margin-top: 10px;
+        height: 330px;
+    }
+    @media (max-width:330px){
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+
+        }
+        .message-container{
+            width: 100%;
+            margin-top: 210px;
+            height: 60%;
+        }
+        .mes-header{
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .chat-name{
+            width: 100%;
+            width: 300px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 50%;
+            margin-top: 10px;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 160px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 160px;
+        height: 50%;
+    }
+    }
+    @media (min-width:330px) {
+        .message-container{
+            margin-top: 180px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+        }
+        .mes-header{
+            width: 100%;
+        }
+        .chat-name{
+            width: 100%;
+            width: 360px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 50%;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 185px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 185px;
+        height: 50%;
+    }
+    
+    }
+    
+
+    @media (min-width:425px) {
+        .message-container{
+            margin-top: 180px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+        }
+        .mes-header{
+            width: 100%;
+        }
+        .chat-name{
+            width: 100%;
+            width: 410px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 50%;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 213px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 213px;
+        height: 50%;
+    }
+    }
+    @media (min-width:370px) {
+        .message-container{
+            margin-top: 180px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+        }
+        .mes-header{
+            width: 100%;
+        }
+        .chat-name{
+            width: 100%;
+            width: 480px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 50%;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 250px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 250px;
+        height: 50%;
+    }
+    
+    }
+    @media (min-width:600px) {
+        .message-container{
+            margin-top: 180px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+        }
+        .mes-header{
+            width: 100%;
+        }
+        .chat-name{
+            width: 100%;
+            width: 600px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 50%;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 310px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 310px;
+        height: 50%;
+    }
+    
+    }
+    @media (min-width:750px) {
+        .message-container{
+            margin-top: 180px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+        }
+        .mes-header{
+            width: 100%;
+        }
+        .chat-name{
+            width: 100%;
+            width: 750px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 50%;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 380px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 380px;
+        height: 50%;
+    }
+    }
+    @media (min-width:1000px) {
+        .message-container{
+            margin-top: 180px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+        }
+        .mes-header{
+            width: 100%;
+        }
+        .chat-name{
+            width: 100%;
+            width: 1000px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 45%;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 80%;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 510px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 510px;
+        height: 50%;
+    }
+    }
+    @media (min-width:1100px){
+        .send-form{
+            width: 1500px;
+        }
+        .messanger-container{
+            width: 100%;
+            margin-bottom: 180px;
+
+        }
+        .message-container{
+            width: 100%;
+            margin-top: 210px;
+            height: 60%;
+        }
+        .mes-header{
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .chat-name{
+            width: 100%;
+            width: 1200px;
+        }
+        .page-layout{
+            width: 100%;
+        }
+        html, body {
+        overflow-x: hidden;
+        }
+        body {
+        position: relative
+        }
+        .message{
+            width: 40%;
+            margin-top: 10px;
+        }
+        .send-input{
+            width: 40%;
+        }
+        .form-control{
+            width: 25%;
+        }
+        #text{
+            width: 1024px;
+            height: 15px;
+        }
+        footer {
+        position: static;
+    }
+    #PhotoPathc{
+        width: 100%;
+    }
+
+    .disaccept{
+        width: 100%;
+    }
+    .accept{
+        width: 100%;
+    }
+    .blockButton{
+        margin-right: 730px;
+        height: 50%;
+    }
+    .clearButton{
+        margin-right: 730px;
+        height: 50%;
+    }
+    }
+</style>
+
+
+
+
+
+
+{% endblock %}
+
+
+

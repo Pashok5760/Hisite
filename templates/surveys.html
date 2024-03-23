@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
+
+
+
+<style>
+  .classWithPad { margin:0 auto; padding:25px; }
+  #sort-selector { margin-bottom: 10px; }
+  
+  .profile-card:hover{
+    opacity: 0.4;
+  }
+  .profile-card:hover .card-img-top{
+    
+    content: url('../static/img/like.jpg');
+  }
+  .profile-card:hover .card-img-top {
+    content: url('../static/img/like.png');
+    cursor: pointer;
+    vertical-align: middle;
+    background-size: 12px auto;
+    padding-left: 40px;
+
+  }
+  
+  
+  
+</style>
+<div class="container text-center my-4 classWithPad">
+  <br>
+  <select id="sort-selector" class="form-select" aria-label="Sort by">
+    <option selected>All</option>
+    <option value="rating">Rating</option>
+    <option value="birthdate">Birthdate</option>
+    <option value="city">City</option>
+  </select>
+<div class="profilesGrid row text-center ">
+
+</div>
+</div>
+
+<script src="../static/js/likes.js"></script>
+{% endblock %}
