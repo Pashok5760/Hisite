@@ -242,8 +242,7 @@ def update_photo():
             db.session.commit()
             return redirect(url_for('profile', user_id=current_user.id))
     except Exception as ex:
-        print(ex)
-
+        return str(ex)
 
 
 @app.route('/clear_dialog', methods=['POST'])
