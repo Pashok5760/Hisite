@@ -48,7 +48,6 @@ multidict==6.0.4
 pillow==10.2.0
 platformdirs==4.2.0
 ply==3.11
-psycopg2==2.9.9
 pyaes==1.6.1
 pyasn1==0.5.1
 pydantic==2.5.3
