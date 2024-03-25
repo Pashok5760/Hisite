@@ -12,6 +12,7 @@ from flask_socketio import SocketIO, join_room, leave_room, send
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+socketio.init_app(app, cors_allowed_origins="*")
 app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 
