@@ -231,10 +231,10 @@ def update_photo():
         import os
         dir_path = os.path.dirname(os.path.realpath(__file__))
         f = request.files['avatar']
-        filename = '..\\static\\img\\' + str(current_user.id) + '.jpg'
+        filename = '../static/img/' + str(current_user.id) + '.jpg'
         # Save the file to disk
         
-        f.save(dir_path +'\\static\\img\\' + str(current_user.id) + '.jpg')
+        f.save(dir_path +'/static/img/' + str(current_user.id) + '.jpg')
         user = User.query.get(current_user.id)
         user.photo = filename
         db.session.commit()
