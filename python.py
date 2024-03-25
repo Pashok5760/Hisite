@@ -227,19 +227,22 @@ def profiles():
 #update photo profile blob
 @app.route('/update_photo', methods=['POST'])
 def update_photo():
-    if request.method == 'POST':
-        import os
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        f = request.files['avatar']
-        filename = '../static/img/' + str(current_user.id) + '.jpg'
-        # Save the file to disk
-        
-        f.save(dir_path +'/static/img/' + str(current_user.id) + '.jpg')
-        user = User.query.get(current_user.id)
-        user.photo = filename
-        db.session.commit()
-        return redirect(url_for('profile', user_id=current_user.id))
+    try:
 
+        if request.method == 'POST':
+            import os
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            f = request.files['avatar']
+            filename = '../static/img/' + str(current_user.id) + '.jpg'
+            # Save the file to disk
+            
+            f.save(dir_path +'/static/img/' + str(current_user.id) + '.jpg')
+            user = User.query.get(current_user.id)
+            user.photo = filename
+            db.session.commit()
+            return redirect(url_for('profile', user_id=current_user.id))
+    except Exception as ex:
+        print(ex)
 
 
 
