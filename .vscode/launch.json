@@ -7,7 +7,7 @@
         {
             "address": "TCP/IP address of process to be debugged",
             "localRoot": "${workspaceFolder}",
-            "name": "Attach to Remote",
+            "name": "Ш",
             "port": 9229,
             "remoteRoot": "Absolute path to the remote directory containing the program",
             "request": "attach",
