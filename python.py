@@ -1,5 +1,5 @@
 import json
-from flask import Flask, jsonify, render_template, redirect, url_for, request, flash
+from flask import Flask, jsonify, render_template, redirect, url_for, request, flash, session
 from flask_sqlalchemy import SQLAlchemy 
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from sqlalchemy import extract, or_
@@ -19,6 +19,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -94,6 +98,7 @@ def send_message():
                           body=message_body, timestamp=datetime.utcnow())
         db.session.add(message)
         db.session.commit()
+        
         flash('Your message has been sent!', 'success')
     else:
         flash('Message sending failed. Please check the recipient and the message body.', 'danger')
@@ -155,10 +160,6 @@ def handle_like():
 
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db.session.get(User, int(user_id))
-
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -189,7 +190,11 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+    
+    if current_user.is_authenticated:
+        return redirect(url_for('profile', user_id=current_user.id))
+
+    elif request.method == 'POST':
         nickname = request.form.get('nickname')
         password = request.form.get('password')
         
@@ -262,14 +267,14 @@ def clear_dialog():
 def update_description():
     if request.method == 'POST':
         user = User.query.get(current_user.id)
-        if request.form['description'] == '':
-            pass
-        else:
-            user.city = request.form['city']
-        if request.form['city'] == '':
-            pass
-        else:
+        if request.form['description'] != '':
             user.description = request.form['description']
+        
+           
+        if request.form['city'] != '':
+             user.city = request.form['city']
+       
+            
         
         user.dob = datetime.strptime(request.form['dob'], '%Y-%m-%d').date()
         db.session.commit()
