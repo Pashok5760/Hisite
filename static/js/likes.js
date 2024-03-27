@@ -7,6 +7,9 @@ $(document).ready(function() {
       const profilesGrid = $('.profilesGrid');
       profilesGrid.empty();
       profiles.forEach(profile => {
+        if (profile.photo == null) { 
+          profile.photo = "../static/img/default.png"
+        }
         const profileCard = `
           <div class="mb-3 col-12 col-sm-6 col-md-4 col-lg-3 text-center profile-card">
             <div class="card h-100" style="width: 100%; height: 100%;">
@@ -64,6 +67,8 @@ $(document).ready(function() {
 
 
 // Function to handle sorting profiles
+
+
 $(document).ready(function() {
   $('#sort-selector').change(function() {
     var sortBy = $(this).val();
@@ -78,6 +83,9 @@ $(document).ready(function() {
         const profilesGrid = $('.profilesGrid');
         profilesGrid.empty();
         data.forEach(profile => {
+          if (profile.photo == null) { 
+            profile.photo = "../static/img/default.png"
+          }
           const profileCard = `
             <div class="mb-3 col-12 col-sm-6 col-md-4 col-lg-3 text-center profile-card">
               <div class="card h-100" style="width: 100%; height: 100%;">
@@ -101,6 +109,57 @@ $(document).ready(function() {
     });
   });
 });
+
+
+  // Hide profiles without photo
+  $('label.checking-photo input[type=checkbox]').change(function() {
+    if ($(this).prop('checked')) {
+      $('.profile-card').each(function() {
+        var photoUrl = $(this).find('img').attr('src');
+        if (photoUrl === '../static/img/default.png') {
+          $(this).addClass('hidden-by-photo').hide();
+        }
+      });
+    } else {
+      $('.profile-card').each(function() {
+        if ($(this).hasClass('hidden-by-description')){
+        
+          $(this).removeClass('hidden-by-photo');
+          
+          }
+          else {
+            $(this).show().removeClass('hidden-by-photo');
+          }
+       
+      });
+
+      
+    }
+  });
+
+  $('label.сhecking-description input[type=checkbox]').change(function() {
+    if ($(this).prop('checked')) {
+      $('.profile-card').each(function() {
+        var descriptionText = $(this).find('.card-text').text();
+        if (descriptionText === "null") {
+          $(this).addClass('hidden-by-description').hide();
+        }
+      });
+    } else {
+      $('.profile-card').each(function() {
+        have_photo = $(this).hasClass('hidden-by-photo')
+      if (have_photo){
+        $(this).removeClass('hidden-by-description');
+      }
+      else {
+        
+        
+        $(this).show().removeClass('hidden-by-description');
+      }
+      });
+      
+    }
+  });
 
 
 // Function to create and display a popup modal for liking a profile

@@ -5,12 +5,6 @@
 
 
 <style>
-
-.btn{
-    width: 200px;
-  }
-  
-  
   .classWithPad { margin:0 auto; padding:25px; }
   #sort-selector { margin-bottom: 10px; }
   
@@ -29,9 +23,90 @@
     padding-left: 40px;
 
   }
+  
+  .btn {
+	  width:200px;
+  }
+
+  .checkbox-ios {
+	display: inline-block;    
+	height: 28px;    
+	line-height: 28px;  
+	margin-right: 10px;      
+	position: relative;
+	vertical-align: middle;
+	font-size: 14px;
+	user-select: none;	
+  margin-bottom: 10px;
+}
+.checkbox-ios .checkbox-ios-switch {
+	position: relative;	
+	display: inline-block;
+	box-sizing: border-box;			
+	width: 56px;	
+	height: 28px;
+	border: 1px solid rgba(0, 0, 0, .1);
+	border-radius: 25%/50%;	
+	vertical-align: top;
+	background: #eee;
+	transition: .2s;
+}
+.checkbox-ios .checkbox-ios-switch:before {
+	content: '';
+	position: absolute;
+	top: 1px;
+	left: 1px;	
+	display: inline-block;
+	width: 24px;	
+	height: 24px;
+	border-radius: 50%;
+	background: white;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, .3);
+	transition: .15s;
+}
+.checkbox-ios input[type=checkbox] {
+	display: block;	
+	width: 0;
+	height: 0;	
+	position: absolute;
+	z-index: -1;
+	opacity: 0;
+}
+.checkbox-ios input[type=checkbox]:not(:disabled):active + .checkbox-ios-switch:before {
+	box-shadow: inset 0 0 2px rgba(0, 0, 0, .3);
+}
+.checkbox-ios input[type=checkbox]:checked + .checkbox-ios-switch {
+	background: limegreen;
+}
+.checkbox-ios input[type=checkbox]:checked + .checkbox-ios-switch:before {
+	transform:translateX(28px);
+}
  
-  
-  
+/* Hover */
+.checkbox-ios input[type="checkbox"]:not(:disabled) + .checkbox-ios-switch {
+	cursor: pointer;
+	border-color: rgba(0, 0, 0, .3);
+}
+ 
+/* Disabled */
+.checkbox-ios input[type=checkbox]:disabled + .checkbox-ios-switch {
+	filter: grayscale(70%);
+	border-color: rgba(0, 0, 0, .1);
+}
+.checkbox-ios input[type=checkbox]:disabled + .checkbox-ios-switch:before {
+	background: #eee;
+}
+ 
+/* Focus */
+.checkbox-ios.focused .checkbox-ios-switch:before {
+	box-shadow: inset 0px 0px 4px #ff5623;
+}
+.gradient-text {
+        background: linear-gradient(45deg, #f3ec78, #af4261);
+        background-clip: text;
+        font-size: 20px;
+        color: transparent;
+    }
 </style>
 <div class="container text-center my-4 classWithPad">
   <br>
@@ -40,7 +115,20 @@
     <option value="rating">Rating</option>
     <option value="birthdate">Birthdate</option>
     <option value="city">City</option>
+    
   </select>
+  <label class="gradient-text">C фото </label>
+  <label class="checkbox-ios checking-photo">
+    <input type="checkbox">
+    <span class="checkbox-ios-switch"></span>
+  </label>
+  <br/>
+  <label class="gradient-text">C описанием</label>
+  <label class="checkbox-ios сhecking-description">
+    <input type="checkbox">
+    <span class="checkbox-ios-switch"></span>
+  </label>
+  
 <div class="profilesGrid row text-center ">
 
 </div>
