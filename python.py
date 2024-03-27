@@ -10,6 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from flask_socketio import SocketIO, join_room, leave_room, send
 
 
+
 app = Flask(__name__)
 socketio = SocketIO(app)
 socketio.init_app(app, cors_allowed_origins="*")
@@ -20,13 +21,19 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
+
+
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nickname = db.Column(db.String(100), unique=True)
+    login= db.Column(db.String(100), unique=True)
+    nickname = db.Column(db.String(100), unique=False)
     password_hash = db.Column(db.String(100))
     dob = db.Column(db.Date)
     description = db.Column(db.Text)
@@ -180,7 +187,7 @@ def register():
         dob = datetime.now().date()
         
         
-        user = User(nickname=nickname, dob=dob)
+        user = User(login=nickname, dob=dob)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -200,12 +207,12 @@ def login():
         
         remember = True if request.form.get('remember') else False
 
-        user = User.query.filter_by(nickname=nickname).first()
+        user = User.query.filter_by(login=nickname).first()
         if user and user.check_password(password):
             login_user(user, remember=remember)
             return redirect(url_for('profile', user_id=user.id))
 
-        flash('Invalid nickname or password')
+        flash('Invalid login or password')
 
     return render_template('login.html')
 
@@ -273,7 +280,9 @@ def update_description():
            
         if request.form['city'] != '':
              user.city = request.form['city']
-       
+        if request.form['nickname'] != '':
+            user.nickname = request.form['nickname']
+
             
         
         user.dob = datetime.strptime(request.form['dob'], '%Y-%m-%d').date()

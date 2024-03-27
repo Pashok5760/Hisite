@@ -94,6 +94,10 @@
     <form action="{{ url_for('update_description') }}" method="post">
         <div class="row justify-content-center">
             <div class="col-md-6 col-sm-12">
+                <span class="gradient-text fs-3">Никнейм:</span>
+                <div class="form-group mb-3">
+                    <input type="text" class="form-control" name="nickname" placeholder="Текущий: {{ current_user.nickname }}">
+                </div>
                 <!-- Description field -->
                 <span class="gradient-text fs-3">Описание:</span>
                 <div class="form-group mb-3">
